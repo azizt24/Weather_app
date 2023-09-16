@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
@@ -7,30 +7,32 @@ function App() {
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
 
-  const API_KEY = 'eb06cca728caef5dd729368993b747f3'; // Replace with your OpenWeatherMap API key
-
-  const fetchWeather = async () => {
-    try {
-      if (!cityName) {
-        throw new Error('Please enter a city name');
-      }
-
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityName)}&appid=${API_KEY}`
-      );
-
-      if (!response.ok) {
-        throw new Error('City not found');
-      }
-
-      const data = await response.json();
-      setWeatherData(data);
-      setError(null);
-    } catch (err) {
-      setWeatherData(null);
-      setError(err.message);
+  useEffect(() => {
+    if (!cityName) {
+      return;
     }
-  };
+
+    const API_KEY = 'eb06cca728caef5dd729368993b747f3'; // Replace with your OpenWeatherMap API key
+    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+      cityName
+    )}&appid=${API_KEY}&units=metric`;
+
+    fetch(apiUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('City not found');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setWeatherData(data);
+        setError(null);
+      })
+      .catch((err) => {
+        setWeatherData(null);
+        setError(err.message);
+      });
+  }, [cityName]);
 
   return (
     <div className="container">
@@ -41,7 +43,7 @@ function App() {
         value={cityName}
         onChange={(e) => setCityName(e.target.value)}
       />
-      <button onClick={fetchWeather}>Get Weather</button>
+      <button>Get Weather</button>
       {error && <p>{error}</p>}
       {weatherData && (
         <div>
@@ -55,3 +57,4 @@ function App() {
 }
 
 export default App;
+
